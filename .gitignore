@@ -1,0 +1,3 @@
+local_cache/*
+!local_cache/README.md
+textdump.html
