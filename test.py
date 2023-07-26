@@ -14,52 +14,21 @@ response = requests.get(url)
 html_content = response.content
 
 # Create a BeautifulSoup object to parse the HTML
-soup = BeautifulSoup(html_content, 'html.parser')
+article = BeautifulSoup(html_content, 'html.parser')
 
 # Extract the title
-title = soup.find('h1', class_='text-black').text.strip()
+title = article.find('h1', class_='text-black').text.strip()
 
-# Extract the date post
-date_post = soup.find('span', class_='date').text.strip()
-
-# Extract the author
-author = soup.find('div', class_='author').strong.text.strip()
-
-# Extract the main image
-main_image = soup.find('img', class_='img-responsive').get('src')
 
 # Extract the main content
 # main_content = soup.find('div', class_='entry-content').text #.strip()
 
-main_content = soup.find('div', class_='text-grey').text #.strip()
+main_content = article.find(class_='post') 
+# Extract the main image
+imgs = main_content.findAll('img') #, class_='img-responsive').get('src')
 
 # Print the extracted information
 print('Title:', title)
-print('Date Post:', date_post)
-print('Author:', author)
-print('Main Image:', main_image)
 print('Main Content:', main_content)
-
-
-# # Parse the HTML content
-# soup = BeautifulSoup(main_content, 'html.parser')
-
-# # Extract main content
-# main_content = soup.find('div', class_='post').get_text()
-
-# # Extract image URL if available
-# image_content = soup.find('img')['src'] if soup.find('img') else None
-
-# # Extract author name
-# author_name = soup.find('div', id='author').strong.get_text()
-
-# # Print the results
-# print("Main Content:")
-# print(main_content.strip())
-
-# if image_content:
-#     print("\nImage URL:")
-#     print(image_content)
-
-# print("\nAuthor Name:")
-# print(author_name.strip())
+print("separatorrr")
+print(imgs)

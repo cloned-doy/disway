@@ -1,3 +1,4 @@
 local_cache/*
+boilerplate/*
 !local_cache/README.md
 textdump.html

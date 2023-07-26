@@ -1,55 +1,63 @@
-import requests
+from typing import Dict
+import json
+
 from bs4 import BeautifulSoup
-from ebooklib import epub
 
-# List of URLs for the blog posts
-urls = [
-    'https://disway.id/read/686230/geothermal',
-    'https://disway.id/read/708137/aceh-only',
-    'https://disway.id/read/705670/teflon-luhut'
-]
+from blog_to_epub_serializer.book_utils import Chapter
+from blog_to_epub_serializer.scraper import Scraper, LOCAL_CACHE
+   
+class Disway(Scraper):
+    SCRAPER_CACHE = f"{LOCAL_CACHE}/disway"
 
-# Create a new EPUB book
-book = epub.EpubBook()
-book.set_title('Blog Posts')
-book.add_author('Your Name')
+    def parse_chapter_text(
+        self, soup: BeautifulSoup, chapter_idx: float
+    ) -> Chapter:
 
-# Loop through the URLs
-for index, url in enumerate(urls):
-    # Send a GET request to the webpage
-    response = requests.get(url)
+        # Create a BeautifulSoup object to parse the HTML
+        # Extract the title
+        chapter_title = soup.find('h1', class_='text-black').text.strip()
 
-    # Parse the HTML content using BeautifulSoup
-    soup = BeautifulSoup(response.text, 'html.parser')
-    # print(soup)
+        chapter_content = soup.find(class_='post')
 
-    # Extract the title and content from the webpage
-    title = soup.find('h1').text.strip()
-    print(title)
-    content = soup.find('article')
-    print(content)
+        # Extract the main image
+        img_blocks = chapter_content.findAll('img') #, class_='img-responsive').get('src')
+        local_srcs = []
+        for img in img_blocks:
+            local_src = self.fetch_and_save_img(
+                img["src"], chapter_idx
+            )
+            img["src"] = local_src
+            local_srcs.append(local_src)
 
-    # Create a new chapter
-    chapter_file_name = f'chapter_{index + 1}.xhtml'
-    chapter = epub.EpubHtml(title=title, file_name=chapter_file_name, lang='en')
+        return Chapter(
+            idx=chapter_idx,
+            title=chapter_title,
+            html_content=chapter_content,
+            image_paths=local_srcs,
+        )
 
-    # Add text content to the chapter
-    chapter.set_content(content.prettify())
 
-    # Extract and add images to the chapter
-    images = content.find_all('img')
-    for i, image in enumerate(images):
-        image_url = image['src']
-        image_data = requests.get(image_url).content
-        image_name = f'image_{index + 1}_{i + 1}.jpg'
-        chapter.add_item(epub.EpubItem(uid=f'img_{index + 1}_{i + 1}', file_name=image_name, media_type='image/jpeg', content=image_data))
-        chapter.content = chapter.content.replace(image_url, image_name)
+# Now you can read the JSON file and update the blog_map if needed
+# Load the blog_map from the JSON file with keys converted back to float
+def float_keys_hook(obj):
+    return {float(key): value for key, value in obj.items()}
 
-    # Add the chapter to the book
-    book.add_item(chapter)
-    book.spine.append(chapter)
+json_file_path = 'blog_map.json'
+with open(json_file_path, 'r') as f:
+    blog_map = json.load(f, object_hook=float_keys_hook)
 
-# Save the EPUB file
-epub.write_epub('output.epub', book, {})
+title = "Harian Disway"
+author = "Dahlan Iskan"
+cover_img_path = f"{LOCAL_CACHE}/disway/aadisway.jpg"
+# cover_img_path = None
+epub_name = "Harian Disway.epub"
 
-print('EPUB file created successfully.')
+scraper = Disway(
+    title=title,
+    author=author,
+    cover_img_path=cover_img_path,
+    blog_map=blog_map,
+    epub_name=epub_name,
+)
+
+scraper.run()
