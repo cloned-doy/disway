@@ -89,23 +89,24 @@ class Scraper:
                 chapters.append(chapter)
             except:
                 logger.warning(f"Ada error di retrieving post")
-                time.sleep(15)
+                # time.sleep(15)
                 
-                retries = 3  # Number of retries
-                delay = 3  # Delay between retries in seconds
+                # retries = 3  # Number of retries
+                # delay = 3  # Delay between retries in seconds
 
-                for i in range(retries):
-                    try:
-                        soup = self.fetch_page(url, key)
-                        chapter = self.parse_chapter_text(soup, key)
-                        chapters.append(chapter)
-                    except:
-                        if i < retries - 1:
-                            logger.warning(f"Retry {i + 1} of {retries} failed. Retrying in {delay} seconds...")
-                            time.sleep(delay)
-                        else:
-                            logger.error("Failed to parse the Chapter after multiple retries.")
-                            pass
+                # for i in range(retries):
+                #     try:
+                #         soup = self.fetch_page(url, key)
+                #         chapter = self.parse_chapter_text(soup, key)
+                #         chapters.append(chapter)
+                #     except:
+                #         if i < retries - 1:
+                #             logger.warning(f"Retry {i + 1} of {retries} failed. Retrying in {delay} seconds...")
+                #             time.sleep(delay)
+                #         else:
+                #             logger.error("Failed to parse the Chapter after multiple retries.")
+                #             pass
+                pass
 
 
         book = Book(
