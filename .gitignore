@@ -1,4 +1,5 @@
 local_cache/*
 boilerplate/*
+blog_to_epub_serializer/__pycache__
 !local_cache/README.md
 textdump.html

@@ -48,7 +48,7 @@ with open(json_file_path, 'r') as f:
 
 title = "Harian Disway"
 author = "Dahlan Iskan"
-cover_img_path = f"{LOCAL_CACHE}/disway/aadisway.jpg"
+cover_img_path = f"{LOCAL_CACHE}/abah.jpg"
 # cover_img_path = None
 epub_name = "Harian Disway.epub"
 

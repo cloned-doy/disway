@@ -50,17 +50,16 @@ class Scraper:
         Start the scraper. Will grab all html + image files, then process and
         save them into an epub.
 
-        :param use_cache: whether to pull everything fresh from the internet
-            or use locally downloaded files
-        """
-        chapters = []
-        preface_chapters = self.add_preface_chapters()
-        if preface_chapters:
-            chapters = preface_chapters
+        :param  use_cache:  whether to pull everything fresh from the internet
+                            or use locally downloaded files
 
-        request_counter = 0     
+                do_precook: bool = True (opt for next dev.)
+        """
+
+        # do precook first. it will make the soup cooking experience feel better 
+        request_counter = 0  
         for key, url in self.blog_map.items():
-            logger.info(f"Processing {key} at url {url}")
+            logger.info(f"Preparing {key} at url {url}")
             soup = None
             if use_cache:
                 try:
@@ -81,33 +80,38 @@ class Scraper:
                     time.sleep(150)
                     request_counter = 0  # Reset the counter after the sleep
 
-                soup = self.fetch_page(url, key)
+                # soup = self.fetch_page(url, key)
+                self.fetch_page(url, key)
 
+
+        # now lets cook the soup
+        chapters = []
+        preface_chapters = self.add_preface_chapters()
+        if preface_chapters:
+            chapters = preface_chapters
+
+        for key, url in self.blog_map.items():
+            logger.info(f"Checking {key}")
+            soup = None
+
+            try:
+                soup = self.read_soup_from_file(key)
+                logger.info(f"Loaded on {key}")
+            except FileNotFoundError:
+                # if local file not found, then look for
+                # retry to fetch from web for one last time
+                soup = self.fetch_page(url, key)
+                logger.warning(
+                    f"Its serious now. A page was totally failed to load. The {key} skipped."
+                )
+                pass
 
             try:
                 chapter = self.parse_chapter_text(soup, key)
                 chapters.append(chapter)
             except:
                 logger.warning(f"Ada error di retrieving post")
-                # time.sleep(15)
-                
-                # retries = 3  # Number of retries
-                # delay = 3  # Delay between retries in seconds
-
-                # for i in range(retries):
-                #     try:
-                #         soup = self.fetch_page(url, key)
-                #         chapter = self.parse_chapter_text(soup, key)
-                #         chapters.append(chapter)
-                #     except:
-                #         if i < retries - 1:
-                #             logger.warning(f"Retry {i + 1} of {retries} failed. Retrying in {delay} seconds...")
-                #             time.sleep(delay)
-                #         else:
-                #             logger.error("Failed to parse the Chapter after multiple retries.")
-                #             pass
                 pass
-
 
         book = Book(
             self.title,
@@ -120,6 +124,8 @@ class Scraper:
         # save book to file
         epub.write_epub(f"{LOCAL_CACHE}/{self.epub_name}", book.ebook, {})
 
+    def soup_precook():
+        """in large size pages, prepare the soup first before put one by one in the plate"""
         pass
 
     @classmethod
@@ -227,14 +233,3 @@ class Scraper:
         else:
             logger.info(f"Image already exists at {full_file_path}. Skipping download.")
             return full_file_path
-
-
-
-        # if not os.path.isfile(full_file_path):
-        #     logger.info(
-        #         f"Could not find file {full_file_path}. Fetching from web."
-        #     )
-        #     file = requests.get(src)
-        #     with open(full_file_path, "wb") as f:
-        #         f.write(file.content)
-        # return full_file_path
